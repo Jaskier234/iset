@@ -1,4 +1,5 @@
-(* Artur Matyjasek *)
+(* autor: Artur Matyjasek *)
+(* code review: Marcel Opiatowski *)
 
 (* Przedział (a,b) lub None (używane w funkcji splt *)
 type k = None | Some of int * int 
