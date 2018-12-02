@@ -33,11 +33,13 @@ let rec cmp x y =
     else -2
   | _ -> invalid_arg "cmp"
 
+(* wysokość drzewa *)
 let height t =
   match t with
   | Node(_, _, _, h, _) -> h
   | Empty -> 0
 
+(* sumaryczna długość przedziałów drzewa *)
 let size t =
   match t with
   | Node(_, _, _, _, s) -> s
@@ -55,6 +57,7 @@ let dodaj a b =
   let l = a - (max_int - b) in
   max l 0 
 
+(* zwraca drzewo, którego synami są l i r, a korzeniem k *)
 let make l k r =
   match k with
   | Some(a, b) ->
@@ -62,6 +65,7 @@ let make l k r =
     Node (l, k, r, max (height l) (height r) + 1, s)
   | None -> invalid_arg "make"
 
+(* zwraca zbalansowane (różnica wysokości < 3) drzewo *)
 let bal l k r =
   let hl = height l in
   let hr = height r in
@@ -85,8 +89,10 @@ let bal l k r =
               make (make l k rll) rlk (make rlr rk rr)
           | Empty -> assert false)
     | Empty -> assert false
-  else make l k r (*Node (l, k, r, max hl hr + 1)*)
+  else make l k r 
 
+(* zwraca drzewo z dodanym przedziałem x. Zakładamy, że jeśli x = [a,b] to przedział [a-1,b+1] nie
+  występuje w drzewie *)
 let rec add_one x tree =
   if x = None then tree else 
   match tree with
@@ -101,6 +107,7 @@ let rec add_one x tree =
         bal l k nr
   | Empty -> make Empty x Empty 
 
+(* łączy 2 poddrzewa i element v *)
 let rec join l v r =
   match (l, r) with
   | (Empty, _) -> add_one v r
@@ -124,6 +131,7 @@ let splt x tree st =
         let (lr, pres, rr) = loop x r in (join l v lr, pres, rr)
   in loop x tree
 
+(* sprawdza, czy c należy do przedziału [x,y] *)
 let w_przedziale x y c = c >= x && c <= y
 
 (* funkcja wytnij zwraca dwa drzewa. Jedno z elementami mniejszymi od [a,b] i
@@ -150,6 +158,7 @@ let rec suma x y =
     else Some(a,max b d) (* b >= c+1 *)
   | a, None | None, a -> a
     
+(* zwraca drzewo tree wraz z przedziałem [a,b] *)
 let rec add (a,b) tree =
   match tree with
   | Empty -> make Empty (Some(a,b)) Empty
@@ -161,16 +170,19 @@ let rec add (a,b) tree =
       let new_x = suma e2 (suma x e1) in
       join l new_x r
 
+(* zwraca najmniejszy element w drzewie *)
 let rec min_elt = function
   | Node (Empty, k, _, _, _) -> k
   | Node (l, _, _, _, _) -> min_elt l
   | Empty -> raise Not_found
 
+(* zwraca drzewo bez najmniejszego elementu *)
 let rec remove_min_elt = function
   | Node (Empty, _, r, _, _) -> r
   | Node (l, k, r, _, _) -> bal (remove_min_elt l) k r
   | Empty -> invalid_arg "remove_min_elt"
 
+(* łączy dwa drzewa *)
 let merge t1 t2 =
   match t1, t2 with
   | Empty, _ -> t2
@@ -189,6 +201,7 @@ let roznica x y s =
     else if b = d then None else Some(d+1,b)
   | a, _ -> a
   
+(* zwraca drzewo tree z tymi samymi elementami poza elementami z przedziału [a,b] *)
 let rec remove (a,b) tree =
   match tree with
   | Empty -> Empty
@@ -202,6 +215,7 @@ let rec remove (a,b) tree =
       let e1 = roznica e1 x 1 in
       add_one e2 (add_one e1 (merge l r))
 
+(* sprawdza, czy x jest w tree *)
 let mem x tree =
   let x = Some(x,x) in
   let rec loop = function
@@ -252,3 +266,4 @@ let below n s =
   in
   let ans = counter s max_int in
   max_int - ans
+
